@@ -1,0 +1,70 @@
+---
+title: "O centro presidencial na América Latina"
+
+author: "Igor Brito, mat. 21/0005131"
+
+date: "Setembro, 2022"
+
+output:
+  revealjs::revealjs_presentation:
+    transition: slide
+---
+
+
+## Diretriz do trabalho
+```{r, include=FALSE}
+# Link no GitHub Pages:
+# 
+
+```
+
+```{css, echo=FALSE}
+/*Os trechos de código abaixo foram incluídos apenas para configurar a capa e alinhar o texto à esquerda.*/
+
+/*Ajustando a capa*/
+h1.title {
+  font-size: 90px;
+  line-height: 90px;
+}
+
+h2.author {
+  font-size: 40px;
+  line-height: 50px;
+  text-align: left;
+}
+
+h3.date {
+  font-size: 30px;
+  text-align: left;
+}
+
+
+/*Alinhando o texto à esquerda*/
+.reveal p {
+    text-align: left;
+  }
+.reveal ul {
+  display: block;
+}
+.reveal ol {
+  display: block;
+}
+
+``` 
+
+Produzir e disponibilizar via GitHub Pages uma apresentação em html (slides) contendo:
+
+1. Um gráfico com estimativas intervalares de alguma variável de interesse em seu trabalho;
+
+2. A formulação de uma hipótese testável (apenas a hipótese, não é necessário testar agora)
+
+A entrega deve ser feita por meio do link correspondente. Ou seja, basta colar o link na resposta.
+
+
+## Média da quantidade de partidos no gabinete
+- Estimativa intervalar...
+
+
+## Hipótese
+- *H1: O centro presidencial expandirá quanto maior for a quantidade de partidos no gabinete*
+
