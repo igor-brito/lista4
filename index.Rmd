@@ -1,0 +1,184 @@
+---
+title: "O centro presidencial na América Latina"
+
+author: "Igor Brito, mat. 21/0005131"
+
+date: "Setembro, 2022"
+
+output:
+  revealjs::revealjs_presentation:
+    transition: slide
+---
+
+```{r setup, include=FALSE}
+# Esse chunk não irá aparecer no slide por não ser um resultado da análise
+
+# Link no GitHub Pages:
+# https://igor-brito.github.io/lista4/apresentacao/
+
+
+# Procedimentos iniciais para configurar o R
+knitr::opts_chunk$set(echo = FALSE, digits = 1)
+
+# Limpa memória
+rm(list = ls())
+gc()
+
+# Definindo o diretorio de trabalho como do arquivo local
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# Carrega pacotes usados no código
+library(readxl)
+library(tidyverse)
+library(magrittr)
+library(infer)
+
+```
+
+
+## Diretrizes do trabalho
+Produzir e disponibilizar via GitHub Pages uma apresentação em html (slides) contendo:
+
+1. Um gráfico com estimativas intervalares de alguma variável de interesse em seu trabalho;
+
+2. A formulação de uma hipótese testável (apenas a hipótese, não é necessário testar agora)
+
+A entrega deve ser feita por meio do link correspondente. Ou seja, basta colar o link na resposta.
+
+
+```{css, echo=FALSE}
+/*Alinhando o texto à esquerda*/
+.reveal p {
+    text-align: left;
+  }
+.reveal ul {
+  display: block;
+}
+.reveal ol {
+  display: block;
+}
+
+``` 
+
+
+## Média da quantidade de partidos no gabinete brasileiro (1985-2010)
+```{r carrega_dados, include=FALSE}
+# Esse chunk não irá aparecer no slide por não ser um resultado da análise
+
+# Os dados já foram baixados e estão no mesmo diretório do arquivo R markdown
+# Desta forma, basta carregá-los
+dados_gabinetes <- read_xlsx("dados/INACIO_LLANOS_DATABASE.xlsx")
+
+# Os países estão identificados por número (Argentina: country = 0; Brasil: country = 1)
+# Portanto, é necessário fazer manipulações nos dados para substitui o número pelo
+# nome dos países
+dados_gabinetes %<>% 
+  mutate(country = case_when(
+    country == 0 ~ "Argentina",
+    country == 1 ~ "Brazil"
+  )) %>% 
+  filter(country == "Brazil")
+
+
+# Estimativa pontual da média de partidos no gabinete (Brasil: 1985-2010)
+#media_part <- round(mean(dados_gabinetes$cabpart), 1)
+#media_part <- mean(dados_gabinetes$cabpart)
+sample_mean <- dados_gabinetes %>%
+  specify(response = cabpart) %>%
+  calculate(stat = "mean")
+media <- sample_mean %>% 
+  pull() %>% 
+  round(2)
+
+
+# Fazendo a distribuição teórica da média
+null_dist <- dados_gabinetes %>%
+  specify(response = cabpart) %>% 
+  assume("t")
+
+# Intervalo de confiança pelo método teórico
+theoretical_ci <- null_dist %>% 
+  get_confidence_interval(level = .95, point_estimate = sample_mean)
+ic_teo_inf <- theoretical_ci %>% 
+  pull(lower_ci) %>% 
+  round(2)
+ic_teo_sup <- theoretical_ci %>% 
+  pull(upper_ci) %>% 
+  round(2)
+
+
+
+# Fazendo a distribuição bootstrap da média
+bootstrap_distribution <- dados_gabinetes %>%
+  specify(response = cabpart) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "mean")
+
+# Intervalo de confiança pelo método do percentil
+percentile_ci <- bootstrap_distribution %>% 
+  get_confidence_interval(level = 0.95, type = "percentile")
+ic_per_inf <- percentile_ci %>% 
+  pull(lower_ci) %>% 
+  round(2)
+ic_per_sup <- percentile_ci %>% 
+  pull(upper_ci) %>% 
+  round(2)
+
+
+# Intervalo de confiança pelo método do erro padrão
+standard_error_ci <- bootstrap_distribution %>% 
+  get_confidence_interval(type = "se", point_estimate = sample_mean)
+ic_ep_inf <- standard_error_ci %>% 
+  pull(lower_ci) %>% 
+  round(2)
+ic_ep_sup <- standard_error_ci %>% 
+  pull(upper_ci) %>% 
+  round(2)
+
+```
+
+- A média da quantidade de partidos no gabinete é `r media`.
+- O intervalo de confiança de 95%, utilizando o método teórico, é [`r ic_teo_inf`; `r ic_teo_sup`].
+- O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do percentil, é [`r ic_per_inf`; `r ic_per_sup`].
+- O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do erro-padrão, é [`r ic_ep_inf`; `r ic_ep_sup`].
+
+
+## Visualizando os intervalos de confiança
+
+```{r, echo = FALSE, fig.width = 10}
+visualize(null_dist) + 
+  shade_confidence_interval(endpoints = theoretical_ci) +
+  geom_vline(xintercept = media, linetype = "dashed") +
+  labs(title = "Distribuição teórica", x = "Média de partidos no gabinete", y = "Densidade")
+
+
+```
+
+
+## Visualizando os intervalos de confiança
+
+```{r, echo = FALSE, fig.width = 10}
+visualize(bootstrap_distribution) + 
+  shade_confidence_interval(endpoints = percentile_ci) +
+  geom_vline(xintercept = media, linetype = "dashed") +
+  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do percentil", x = "Média de partidos no gabinete", y = "Densidade")
+
+
+```
+
+## Visualizando os intervalos de confiança
+
+```{r, echo = FALSE, fig.width = 10}
+visualize(bootstrap_distribution) + 
+  shade_confidence_interval(endpoints = standard_error_ci) +
+  geom_vline(xintercept = media, linetype = "dashed") +
+  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do erro-padrão", x = "Média de partidos no gabinete", y = "Densidade")
+
+
+```
+
+
+
+## Hipótese a ser testada
+- *H1: O centro presidencial expandirá quanto maior for a quantidade de partidos no gabinete*
+
