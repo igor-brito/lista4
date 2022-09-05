@@ -1,5 +1,5 @@
 ---
-title: "O centro presidencial na América Latina"
+title: "O centro presidencial no Brasil"
 
 author: "Igor Brito, mat. 21/0005131"
 
@@ -14,7 +14,7 @@ output:
 # Esse chunk não irá aparecer no slide por não ser um resultado da análise
 
 # Link no GitHub Pages:
-# https://igor-brito.github.io/lista4/apresentacao/
+# https://igor-brito.github.io/lista4/
 
 
 # Procedimentos iniciais para configurar o R
@@ -47,7 +47,7 @@ A entrega deve ser feita por meio do link correspondente. Ou seja, basta colar o
 
 
 ```{css, echo=FALSE}
-/*Alinhando o texto à esquerda*/
+/*Alinhando o texto dos slides à esquerda*/
 .reveal p {
     text-align: left;
   }
@@ -61,30 +61,25 @@ A entrega deve ser feita por meio do link correspondente. Ou seja, basta colar o
 ``` 
 
 
-## Média da quantidade de partidos no gabinete brasileiro (1985-2010)
-```{r carrega_dados, include=FALSE}
+## Média da quantidade de partidos no gabinete brasileiro por mês (mar/85 - abr/16)
+```{r, include=FALSE}
 # Esse chunk não irá aparecer no slide por não ser um resultado da análise
 
-# Os dados já foram baixados e estão no mesmo diretório do arquivo R markdown
+# Utilizarei nesta lista os dados de gabinetes presidenciais do Brasil entre
+# março de 1985 a abril de 2016. Esses dados foram disponibilizados por Amorim
+# Neto (2019) diretamente no corpo do trabalho:
+
+# AMORIM NETO, Octavio. Cabinets and coalitional presidentialism.In: AMES,
+# Barry (ed.). Routledge Handbook of Brazilian Politics. New York: Routledge,
+# 2019. p. 293-312
+
+# Os dados estão no mesmo diretório do arquivo R markdown
 # Desta forma, basta carregá-los
-dados_gabinetes <- read_xlsx("dados/INACIO_LLANOS_DATABASE.xlsx")
+dados_gabinetes <- read.csv("dados/gabinetes_Brasil_Amorim_mensal.csv")
 
-# Os países estão identificados por número (Argentina: country = 0; Brasil: country = 1)
-# Portanto, é necessário fazer manipulações nos dados para substitui o número pelo
-# nome dos países
-dados_gabinetes %<>% 
-  mutate(country = case_when(
-    country == 0 ~ "Argentina",
-    country == 1 ~ "Brazil"
-  )) %>% 
-  filter(country == "Brazil")
-
-
-# Estimativa pontual da média de partidos no gabinete (Brasil: 1985-2010)
-#media_part <- round(mean(dados_gabinetes$cabpart), 1)
-#media_part <- mean(dados_gabinetes$cabpart)
+# Estimativa pontual da média de partidos no gabinete (Brasil: 03/85-04/16)
 sample_mean <- dados_gabinetes %>%
-  specify(response = cabpart) %>%
+  specify(response = qtd_part) %>%
   calculate(stat = "mean")
 media <- sample_mean %>% 
   pull() %>% 
@@ -93,7 +88,7 @@ media <- sample_mean %>%
 
 # Fazendo a distribuição teórica da média
 null_dist <- dados_gabinetes %>%
-  specify(response = cabpart) %>% 
+  specify(response = qtd_part) %>% 
   assume("t")
 
 # Intervalo de confiança pelo método teórico
@@ -110,7 +105,7 @@ ic_teo_sup <- theoretical_ci %>%
 
 # Fazendo a distribuição bootstrap da média
 bootstrap_distribution <- dados_gabinetes %>%
-  specify(response = cabpart) %>% 
+  specify(response = qtd_part) %>% 
   generate(reps = 1000) %>% 
   calculate(stat = "mean")
 
@@ -137,11 +132,11 @@ ic_ep_sup <- standard_error_ci %>%
 
 ```
 
-- A média da quantidade de partidos no gabinete é `r media`.
-- O intervalo de confiança de 95%, utilizando o método teórico, é [`r ic_teo_inf`; `r ic_teo_sup`].
-- O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do percentil, é [`r ic_per_inf`; `r ic_per_sup`].
-- O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do erro-padrão, é [`r ic_ep_inf`; `r ic_ep_sup`].
-
+- Estimativa pontual: a média da quantidade de partidos no gabinete é `r media` por mês.
+- Estimativas intervalares:
+    - O intervalo de confiança de 95%, utilizando o método teórico, é [`r ic_teo_inf`; `r ic_teo_sup`].
+    - O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do percentil, é [`r ic_per_inf`; `r ic_per_sup`].
+    - O intervalo de confiança de 95%, utilizando a distribuição bootstrap e o método do erro-padrão, é [`r ic_ep_inf`; `r ic_ep_sup`].
 
 ## Visualizando os intervalos de confiança
 
@@ -149,7 +144,7 @@ ic_ep_sup <- standard_error_ci %>%
 visualize(null_dist) + 
   shade_confidence_interval(endpoints = theoretical_ci) +
   geom_vline(xintercept = media, linetype = "dashed") +
-  labs(title = "Distribuição teórica", x = "Média de partidos no gabinete", y = "Densidade")
+  labs(title = "Distribuição teórica", x = "Média de partidos no gabinete por mês", y = "Densidade")
 
 
 ```
@@ -161,7 +156,7 @@ visualize(null_dist) +
 visualize(bootstrap_distribution) + 
   shade_confidence_interval(endpoints = percentile_ci) +
   geom_vline(xintercept = media, linetype = "dashed") +
-  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do percentil", x = "Média de partidos no gabinete", y = "Densidade")
+  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do percentil", x = "Média de partidos no gabinete por mês", y = "Densidade")
 
 
 ```
@@ -172,7 +167,7 @@ visualize(bootstrap_distribution) +
 visualize(bootstrap_distribution) + 
   shade_confidence_interval(endpoints = standard_error_ci) +
   geom_vline(xintercept = media, linetype = "dashed") +
-  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do erro-padrão", x = "Média de partidos no gabinete", y = "Densidade")
+  labs(title = "Distribuição simulada (bootstrap) com intervalo de conficança pelo método do erro-padrão", x = "Média de partidos no gabinete por mês", y = "Densidade")
 
 
 ```
